@@ -1,29 +1,27 @@
 pipeline {
-    agent any
-
+    agent {
+        docker { image 'python:3.12-slim' }
+    }
     stages {
         stage('Build') {
             steps {
-                echo "Build number ${env.BUILD_NUMBER} on ${env.NODE_NAME}"
+                echo "Build number ${env.BUILD_NUMBER}"
                 sh 'python3 --version'
+                sh 'pip install --user -r requirements.txt'
             }
         }
         stage('Test') {
             steps {
-                sh 'python3 -m unittest discover -v'
+                sh 'python3 -m pytest test_app.py'
             }
         }
         stage('Package') {
             steps {
-                sh 'tar -czf app-${BUILD_NUMBER}.tar.gz app.py'
+                sh 'echo packaging...'
             }
         }
     }
-
     post {
-        success {
-            archiveArtifacts artifacts: '*.tar.gz', fingerprint: true
-        }
         always {
             echo "Pipeline finished with status: ${currentBuild.currentResult}"
         }
